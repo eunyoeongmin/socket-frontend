@@ -19,14 +19,19 @@ export default function ChatRoomPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageInput, setMessageInput] = useState('');
   const [userCount, setUserCount] = useState(0); // 현재 접속 인원 상태 추가
+  const userId = Math.random(); // 실제 사용자 ID를 대체하세요
 
   useEffect(() => {
     // 방 입장 처리
     socket.emit('joinRoom', roomId);
 
     // 메시지 수신 리스너
-    const handleMessage = (message: Message) => {
-      setMessages(prev => [...prev, message]);
+    const handleMessage = (message: string, sender: string) => {
+      setMessages(prev => [...prev, {
+        text: message,
+        sender,
+        timestamp: new Date().toISOString()
+      }]);
     };
 
     // 인원 수 업데이트 리스너
@@ -34,28 +39,20 @@ export default function ChatRoomPage() {
       setUserCount(count);
     };
 
-    socket.on('message', handleMessage);
+    socket.on('messageReceived', handleMessage);
     socket.on('roomCountUpdated', handleUserCount);
 
     return () => {
       // 방 퇴장 처리
       socket.emit('leaveRoom', roomId);
-      socket.off('message', handleMessage);
+      socket.off('messageReceived', handleMessage);
       socket.off('roomCountUpdated', handleUserCount);
     };
   }, [roomId]);
 
   const sendMessage = () => {
     if (messageInput.trim()) {
-      const newMessage = {
-        text: messageInput,
-        sender: '나', // 또는 사용자 ID
-        timestamp: new Date().toISOString()
-      };
-      socket.emit('sendMessage', { 
-        roomId, 
-        message: newMessage 
-      });
+      socket.emit('sendMessage', { roomId, message: messageInput, sender: userId });
       setMessageInput('');
     }
   };
@@ -71,7 +68,7 @@ export default function ChatRoomPage() {
         {messages.map((msg, index) => (
           <div 
             key={index}
-            className={`mb-3 p-2 rounded-lg ${msg.sender === '나' ? 'bg-blue-100 ml-auto' : 'bg-gray-100'}`}
+            className={`mb-3 p-2 rounded-lg ${msg.sender === userId ? 'bg-blue-100 ml-auto' : 'bg-gray-100'}`}
             style={{ maxWidth: '80%' }}
           >
             <div className="text-sm font-medium text-gray-700">{msg.sender}</div>
@@ -90,7 +87,7 @@ export default function ChatRoomPage() {
           onChange={(e) => setMessageInput(e.target.value)}
           className="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="메시지를 입력하세요..."
-          onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+          // onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
         />
         <button
           onClick={sendMessage}

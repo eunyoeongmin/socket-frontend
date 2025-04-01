@@ -16,12 +16,12 @@ export const getRooms = async () => {
   }
 };
 
-export const createRoom = async (name: string) => {
-  try {
-    const response = await api.post('/api/rooms', { name });
-    return response.data;
-  } catch (error) {
-    console.error('방 생성 실패:', error);
-    throw error;
-  }
-};
+// export const createRoom = async (name: string) => {
+//   try {
+//     const response = await api.post('/api/rooms', { name });
+//     return response.data;
+//   } catch (error) {
+//     console.error('방 생성 실패:', error);
+//     throw error;
+//   }
+// };

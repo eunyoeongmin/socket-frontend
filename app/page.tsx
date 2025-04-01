@@ -1,14 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
 import { socket } from './lib/socket';
 import RoomCard from './components/RoomCard';
-import { getRooms, createRoom } from './lib/api';
-
-// axios 인스턴스 생성
-const api = axios.create({
-  baseURL: 'http://localhost:7870',
-});
+import { getRooms } from './lib/api';
 
 interface ChatRoom {
   roomId: string;
@@ -40,9 +34,7 @@ export default function LobbyPage() {
   const handleCreateRoom = async () => {
     if (!newRoomName.trim()) return;
     try {
-      const newRoom = await createRoom(newRoomName);
-      setRooms(prev => [...prev, newRoom]);
-      setNewRoomName('');
+      socket.emit('createRoom', newRoomName); // WebSocket 이벤트 발신
     } catch (error) {
       console.error('방 생성 오류:', error);
     }
